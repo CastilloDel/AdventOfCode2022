@@ -7,6 +7,61 @@ import (
 	"strings"
 )
 
+func main() {
+	fmt.Println("The result for the first part is:", part1())
+	fmt.Println("The result for the second part is:", part2())
+}
+
+func part1() int {
+	file, err := os.Open("day2/input")
+	if err != nil {
+		panic("Couldn't read the input")
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+
+	total := 0
+	for scanner.Scan() {
+		plays := strings.Fields(scanner.Text())
+		rival_play := readPlay(plays[0])
+		own_play := readPlay(plays[1])
+		total += int(own_play)
+		total += int(getMatchResult(own_play, rival_play))
+	}
+
+	if err := scanner.Err(); err != nil {
+		panic(err)
+	}
+
+	return total
+}
+
+func part2() int {
+	file, err := os.Open("day2/input")
+	if err != nil {
+		panic("Couldn't read the input")
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+
+	total := 0
+	for scanner.Scan() {
+		words := strings.Fields(scanner.Text())
+		rival_play := readPlay(words[0])
+		result := readResult(words[1])
+		total += int(result)
+		total += int(getPlayFromResult(result, rival_play))
+	}
+
+	if err := scanner.Err(); err != nil {
+		panic(err)
+	}
+
+	return total
+}
+
 type Play int64
 
 const (
@@ -76,59 +131,4 @@ func getPlayFromResult(result Result, rival_play Play) Play {
 		return Rock
 	}
 	return Paper
-}
-
-func part1() int {
-	file, err := os.Open("day2/input")
-	if err != nil {
-		panic("Couldn't read the input")
-	}
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-
-	total := 0
-	for scanner.Scan() {
-		plays := strings.Fields(scanner.Text())
-		rival_play := readPlay(plays[0])
-		own_play := readPlay(plays[1])
-		total += int(own_play)
-		total += int(getMatchResult(own_play, rival_play))
-	}
-
-	if err := scanner.Err(); err != nil {
-		panic(err)
-	}
-
-	return total
-}
-
-func part2() int {
-	file, err := os.Open("day2/input")
-	if err != nil {
-		panic("Couldn't read the input")
-	}
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-
-	total := 0
-	for scanner.Scan() {
-		words := strings.Fields(scanner.Text())
-		rival_play := readPlay(words[0])
-		result := readResult(words[1])
-		total += int(result)
-		total += int(getPlayFromResult(result, rival_play))
-	}
-
-	if err := scanner.Err(); err != nil {
-		panic(err)
-	}
-
-	return total
-}
-
-func main() {
-	fmt.Println("The result for the first part is:", part1())
-	fmt.Println("The result for the second part is:", part2())
 }

@@ -7,6 +7,11 @@ import (
 	"strconv"
 )
 
+func main() {
+	fmt.Println("The result for the first part is:", part1())
+	fmt.Println("The result for the second part is:", part2())
+}
+
 func part1() int {
 	file, err := os.Open("day1/input")
 	if err != nil {
@@ -80,12 +85,4 @@ func part2() int {
 	}
 
 	return maxThree[0] + maxThree[1] + maxThree[2]
-}
-
-func main() {
-
-	fmt.Println("The result for the first part is:", part1())
-
-	fmt.Println("The result for the second part is:", part2())
-
 }
