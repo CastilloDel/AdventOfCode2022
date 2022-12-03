@@ -52,6 +52,54 @@ func part1() int {
 	return total
 }
 
+func getBadgeItem(rucksack1 string, rucksack2 string, rucksack3 string) string {
+	items := make(map[byte]int)
+	for i := 0; i < len(rucksack1); i++ {
+		items[rucksack1[i]] = 1
+	}
+	for i := 0; i < len(rucksack2); i++ {
+		_, ok := items[rucksack2[i]]
+		if ok {
+			items[rucksack2[i]] = 2
+		}
+	}
+	for i := 0; i < len(rucksack3); i++ {
+		value, ok := items[rucksack3[i]]
+		if ok && value == 2 {
+			return string(rucksack3[i])
+		}
+	}
+	panic("A rucksack didn't have a shared item")
+}
+
+func part2() int {
+	file, err := os.Open("day3/input")
+	if err != nil {
+		panic("Couldn't read the input")
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+
+	total := 0
+	for scanner.Scan() {
+		rucksack1 := scanner.Text()
+		scanner.Scan()
+		rucksack2 := scanner.Text()
+		scanner.Scan()
+		rucksack3 := scanner.Text()
+		badge := getBadgeItem(rucksack1, rucksack2, rucksack3)
+		total += getItemPriority(badge)
+	}
+
+	if err := scanner.Err(); err != nil {
+		panic(err)
+	}
+
+	return total
+}
+
 func main() {
 	fmt.Println("The result for the first part is:", part1())
+	fmt.Println("The result for the second part is:", part2())
 }
