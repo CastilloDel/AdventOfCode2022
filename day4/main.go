@@ -10,6 +10,7 @@ import (
 
 func main() {
 	fmt.Println("The result for the first part is:", part1())
+	fmt.Println("The result for the second part is:", part2())
 }
 
 func part1() int {
@@ -27,7 +28,30 @@ func part1() int {
 		if elf1.contains(elf2) || elf2.contains(elf1) {
 			total++
 		}
+	}
 
+	if err := scanner.Err(); err != nil {
+		panic(err)
+	}
+
+	return total
+}
+
+func part2() int {
+	file, err := os.Open("day4/input")
+	if err != nil {
+		panic("Couldn't read the input")
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+
+	total := 0
+	for scanner.Scan() {
+		elf1, elf2 := parseElfAssignmentPair(scanner.Text())
+		if elf1.overlaps(elf2) {
+			total++
+		}
 	}
 
 	if err := scanner.Err(); err != nil {
@@ -44,6 +68,10 @@ type ElfAssignment struct {
 
 func (assignment ElfAssignment) contains(otherAssignment ElfAssignment) bool {
 	return assignment.start <= otherAssignment.start && assignment.end >= otherAssignment.end
+}
+
+func (assignment ElfAssignment) overlaps(otherAssignment ElfAssignment) bool {
+	return assignment.start <= otherAssignment.end && assignment.end >= otherAssignment.start
 }
 
 func parseElfAssignmentPair(s string) (ElfAssignment, ElfAssignment) {
