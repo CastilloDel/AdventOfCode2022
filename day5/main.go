@@ -10,6 +10,7 @@ import (
 
 func main() {
 	fmt.Println("The result for the first part is:", part1())
+	fmt.Println("The result for the second part is:", part2())
 }
 
 type Instruction struct {
@@ -31,7 +32,35 @@ func part1() string {
 	scanner.Scan()
 	for scanner.Scan() {
 		instruction := parseInstruction(scanner.Text())
-		applyInstruction(arrangement, instruction)
+		applyInstruction1(arrangement, instruction)
+	}
+
+	if err := scanner.Err(); err != nil {
+		panic(err)
+	}
+
+	result := ""
+	for i := 0; i < 9; i++ {
+		result += arrangement[i][len(arrangement[i])-1]
+	}
+
+	return result
+}
+
+func part2() string {
+	file, err := os.Open("day5/input")
+	if err != nil {
+		panic("Couldn't read the input")
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+
+	arrangement := parseArrangement(scanner)
+	scanner.Scan()
+	for scanner.Scan() {
+		instruction := parseInstruction(scanner.Text())
+		applyInstruction2(arrangement, instruction)
 	}
 
 	if err := scanner.Err(); err != nil {
@@ -82,7 +111,7 @@ func parseInstruction(s string) Instruction {
 	return Instruction{parts[0], parts[1] - 1, parts[2] - 1}
 }
 
-func applyInstruction(arrangement map[int][]string, instruction Instruction) {
+func applyInstruction1(arrangement map[int][]string, instruction Instruction) {
 	source := instruction.source
 	dest := instruction.dest
 	for i := 0; i < instruction.size; i++ {
@@ -91,4 +120,13 @@ func applyInstruction(arrangement map[int][]string, instruction Instruction) {
 		arrangement[dest] = append(arrangement[dest], lastElement)
 		arrangement[source] = arrangement[source][:sourceLen-1]
 	}
+}
+
+func applyInstruction2(arrangement map[int][]string, instruction Instruction) {
+	source := instruction.source
+	dest := instruction.dest
+	size := instruction.size
+	sourceLen := len(arrangement[source])
+	arrangement[dest] = append(arrangement[dest], arrangement[source][sourceLen-size:]...)
+	arrangement[source] = arrangement[source][:sourceLen-size]
 }
