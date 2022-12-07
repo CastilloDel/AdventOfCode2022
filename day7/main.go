@@ -10,6 +10,7 @@ import (
 
 func main() {
 	fmt.Println("The result for the first part is:", part1())
+	fmt.Println("The result for the second part is:", part2())
 }
 
 func part1() int {
@@ -29,6 +30,29 @@ func part1() int {
 	}
 
 	return total
+}
+
+func part2() int {
+	content, err := ioutil.ReadFile("day7/input")
+	if err != nil {
+		panic("Couldn't read the input")
+	}
+
+	fileSystem := parseFileSystem(string(content))
+	directorySizes := getDirectorySizes(fileSystem)
+
+	sizeAvalaible := 70000000
+	sizeNeeded := 30000000
+	sizeUsed := directorySizes["/"]
+	idealSizeToDelete := sizeNeeded - (sizeAvalaible - sizeUsed)
+	sizeToDelete := sizeUsed
+	for _, size := range directorySizes {
+		if size >= idealSizeToDelete && size < sizeToDelete {
+			sizeToDelete = size
+		}
+	}
+
+	return sizeToDelete
 }
 
 type FileSystem = map[string]FileSystemElement
@@ -89,7 +113,7 @@ func parseLS(s string) LS {
 }
 
 func parseFileSystemElement(s string) FileSystemElement {
-	regex := regexp.MustCompile("(\\d+) (\\w+)|dir (\\w+)")
+	regex := regexp.MustCompile("(\\d+) ([\\w\\.]+)|dir ([\\w\\.]+)")
 	matches := regex.FindStringSubmatch(s)
 	if matches[3] != "" {
 		return FileSystemElement{name: matches[3], size: 0}
