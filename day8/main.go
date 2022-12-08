@@ -9,6 +9,7 @@ import (
 
 func main() {
 	fmt.Println("The result for the first part is:", part1())
+	fmt.Println("The result for the second part is:", part2())
 }
 
 func part1() int {
@@ -32,6 +33,27 @@ func part1() int {
 	return totalVisibleTrees
 }
 
+func part2() int {
+	content, err := ioutil.ReadFile("day8/input")
+	if err != nil {
+		panic("Couldn't read the input")
+	}
+
+	treeHeights := parseTreeHeights(string(content))
+	treeScenicScores := getTreeScenicScores(treeHeights)
+
+	highestScenicScore := 0
+	for _, row := range treeScenicScores {
+		for _, scenicScore := range row {
+			if scenicScore > highestScenicScore {
+				highestScenicScore = scenicScore
+			}
+		}
+	}
+
+	return highestScenicScore
+}
+
 func parseTreeHeights(content string) [][]int {
 	treeHeights := make([][]int, 0)
 	for i, line := range strings.Split(content, "\n") {
@@ -50,7 +72,7 @@ func parseTreeHeights(content string) [][]int {
 func getTreeVisibilities(treeHeights [][]int) [][]bool {
 	m := len(treeHeights)
 	n := len(treeHeights[0])
-	treeVisibilities := make([][]bool, len(treeHeights))
+	treeVisibilities := make([][]bool, m)
 	for i := 0; i < m; i++ { // Left -> Right
 		treeVisibilities[i] = make([]bool, n)
 		treeVisibilities[i][0] = true
@@ -94,4 +116,54 @@ func getTreeVisibilities(treeHeights [][]int) [][]bool {
 	}
 
 	return treeVisibilities
+}
+
+func getTreeScenicScores(treeHeights [][]int) [][]int {
+	m := len(treeHeights)
+	n := len(treeHeights[0])
+	treeScenicScores := make([][]int, m)
+	for i := 0; i < m; i++ {
+		treeScenicScores[i] = make([]int, n)
+		if i == 0 || i == m-1 {
+			continue // Skip the borders (they will always be 0)
+		}
+		for j := 1; j < n-1; j++ { // Skip the borders
+			treeScenicScores[i][j] = getTreeScenicScore(treeHeights, i, j)
+		}
+	}
+	return treeScenicScores
+}
+
+func getTreeScenicScore(treeHeights [][]int, i, j int) int {
+	m := len(treeHeights)
+	n := len(treeHeights[0])
+	up := 0
+	for y := i - 1; y >= 0; y-- {
+		up++
+		if treeHeights[y][j] >= treeHeights[i][j] {
+			break
+		}
+	}
+	down := 0
+	for y := i + 1; y < m; y++ {
+		down++
+		if treeHeights[y][j] >= treeHeights[i][j] {
+			break
+		}
+	}
+	left := 0
+	for x := j - 1; x >= 0; x-- {
+		left++
+		if treeHeights[i][x] >= treeHeights[i][j] {
+			break
+		}
+	}
+	right := 0
+	for x := j + 1; x < n; x++ {
+		right++
+		if treeHeights[i][x] >= treeHeights[i][j] {
+			break
+		}
+	}
+	return up * down * left * right
 }
