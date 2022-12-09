@@ -10,6 +10,7 @@ import (
 
 func main() {
 	fmt.Println("The result for the first part is:", part1())
+	fmt.Println("The result for the second part is:", part2())
 }
 
 func part1() int {
@@ -20,7 +21,18 @@ func part1() int {
 
 	instructions := parseInstructions(string(content))
 
-	return countTailPositions(instructions)
+	return countTailPositions(instructions, 2)
+}
+
+func part2() int {
+	content, err := ioutil.ReadFile("day9/input")
+	if err != nil {
+		panic("Couldn't read the input")
+	}
+
+	instructions := parseInstructions(string(content))
+
+	return countTailPositions(instructions, 10)
 }
 
 type Direction int
@@ -69,66 +81,67 @@ type Position struct {
 	y int
 }
 
-type RopePosition struct {
-	head Position
-	tail Position
-}
-
-func countTailPositions(instructions []Instruction) int {
+func countTailPositions(instructions []Instruction, numberOfKnots int) int {
 	totalPositions := map[Position]bool{}
-	position := RopePosition{Position{0, 0}, Position{0, 0}}
+	positions := []Position{}
+	for i := 0; i < numberOfKnots; i++ {
+		positions = append(positions, Position{0, 0})
+	}
 	for _, instruction := range instructions {
 		for i := 0; i < instruction.distance; i++ {
-			position = moveRope(position, instruction.direction)
-			totalPositions[position.tail] = true
+			positions[0] = moveKnot(positions[0], instruction.direction)
+			for i := 1; i < len(positions); i++ {
+				positions[i] = moveTail(positions[i-1], positions[i])
+			}
+			totalPositions[positions[len(positions)-1]] = true
 		}
 	}
 	return len(totalPositions)
 }
 
-func moveRope(position RopePosition, direction Direction) RopePosition {
+func moveKnot(position Position, direction Direction) Position {
 	switch direction {
 	case Up:
-		position.head.y += 1
+		position.y += 1
 	case Right:
-		position.head.x += 1
+		position.x += 1
 	case Down:
-		position.head.y -= 1
+		position.y -= 1
 	case Left:
-		position.head.x -= 1
-	}
-	return moveTail(position)
-}
-
-func moveTail(position RopePosition) RopePosition {
-	distance := getManhattanDistance(position.head, position.tail)
-	if distance == 3 { // we need to move in both directions
-		if position.head.x-position.tail.x > 0 {
-			position.tail.x += 1
-		} else {
-			position.tail.x -= 1
-		}
-		if position.head.y-position.tail.y > 0 {
-			position.tail.y += 1
-		} else {
-			position.tail.y -= 1
-		}
-		// If they touch diagonally we don't need to move them
-	} else if distance == 2 && int(math.Abs(float64(position.head.y-position.tail.y))) != 1 {
-		xDistance := position.head.x - position.tail.x
-		if xDistance == 2 {
-			position.tail.x += 1
-		} else if xDistance == -2 {
-			position.tail.x -= 1
-		}
-		yDistance := position.head.y - position.tail.y
-		if yDistance == 2 {
-			position.tail.y += 1
-		} else if yDistance == -2 {
-			position.tail.y -= 1
-		}
+		position.x -= 1
 	}
 	return position
+}
+
+func moveTail(head Position, tail Position) Position {
+	distance := getManhattanDistance(head, tail)
+	if distance > 2 { // we need to move in both directions
+		if head.x-tail.x > 0 {
+			tail.x += 1
+		} else {
+			tail.x -= 1
+		}
+		if head.y-tail.y > 0 {
+			tail.y += 1
+		} else {
+			tail.y -= 1
+		}
+		// If they touch diagonally we don't need to move them
+	} else if distance == 2 && int(math.Abs(float64(head.y-tail.y))) != 1 {
+		xDistance := head.x - tail.x
+		if xDistance == 2 {
+			tail.x += 1
+		} else if xDistance == -2 {
+			tail.x -= 1
+		}
+		yDistance := head.y - tail.y
+		if yDistance == 2 {
+			tail.y += 1
+		} else if yDistance == -2 {
+			tail.y -= 1
+		}
+	}
+	return tail
 }
 
 func getManhattanDistance(position1, position2 Position) int {
