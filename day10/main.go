@@ -3,12 +3,15 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"math"
 	"strconv"
 	"strings"
 )
 
 func main() {
 	fmt.Println("The result for the first part is:", part1())
+	fmt.Println("The result for the second part is:")
+	fmt.Print(part2())
 }
 
 func part1() int {
@@ -28,6 +31,32 @@ func part1() int {
 	}
 
 	return signalStrengthSum
+}
+
+func part2() string {
+	content, err := ioutil.ReadFile("day10/input")
+	if err != nil {
+		panic("Couldn't read the input")
+	}
+
+	instructions := parseInstructions(string(content))
+	state := ProgramState{1, 1}
+	registerContents := getRegisterContents(state, instructions)
+	CRTWidth := 40
+	CRTHeight := 6
+	result := ""
+	for i := 0; i < CRTHeight; i++ {
+		for j := 0; j < CRTWidth; j++ {
+			register := registerContents[i*CRTWidth+j]
+			if math.Abs(float64(register-j)) < 2 {
+				result += "."
+			} else {
+				result += "#"
+			}
+		}
+		result += "\n"
+	}
+	return result
 }
 
 type ProgramState struct {
