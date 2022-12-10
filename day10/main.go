@@ -19,20 +19,12 @@ func part1() int {
 
 	instructions := parseInstructions(string(content))
 	state := ProgramState{1, 1}
-	stop := 20
+	registerContents := getRegisterContents(state, instructions)
 	finalStop := 220
 	stopDistance := 40
 	signalStrengthSum := 0
-	for _, instruction := range instructions {
-		newState := instruction.apply(state)
-		if newState.programCounter > stop {
-			signalStrengthSum += state.registerContent * stop
-			if stop == finalStop {
-				break
-			}
-			stop += stopDistance
-		}
-		state = newState
+	for stop := 20; stop <= finalStop; stop += stopDistance {
+		signalStrengthSum += registerContents[stop-1] * stop
 	}
 
 	return signalStrengthSum
@@ -81,4 +73,17 @@ func parseInstruction(line string) Instruction {
 		panic("Couldn't read an instruction")
 	}
 	return Addition{value}
+}
+
+func getRegisterContents(state ProgramState, instructions []Instruction) []int {
+	contents := []int{}
+	for _, instruction := range instructions {
+		newState := instruction.apply(state)
+		for i := 0; i < newState.programCounter-state.programCounter; i++ {
+			contents = append(contents, state.registerContent)
+		}
+		state = newState
+	}
+	contents = append(contents, state.registerContent)
+	return contents
 }
