@@ -9,30 +9,33 @@ import (
 )
 
 func main() {
-	fmt.Println("The result for the first part is:", part1())
-}
-
-func part1() int {
 	content, err := ioutil.ReadFile("day11/input")
 	if err != nil {
 		panic("Couldn't read the input")
 	}
 
-	monkeys := parseInput(string(content))
+	fmt.Println("The result for the first part is:", part1(string(content)))
+	fmt.Println("The result for the second part is:", part2(string(content)))
+}
+
+func part1(content string) int {
+	monkeys := parseInput(content)
 	inspectionsPerMonkey := make([]int, len(monkeys))
 	for i := 0; i < 20; i++ {
 		computeRound(monkeys, inspectionsPerMonkey)
 	}
-	max1 := 0
-	max2 := 0
-	for _, value := range inspectionsPerMonkey {
-		if value > max1 {
-			max2 = max1
-			max1 = value
-		} else if value > max2 {
-			max2 = value
-		}
+	max1, max2 := get2MaxValues(inspectionsPerMonkey)
+	return max1 * max2
+}
+
+func part2(content string) int {
+	monkeys := parseInput(content)
+	constant := getDivisorConstant(monkeys)
+	inspectionsPerMonkey := make([]int, len(monkeys))
+	for i := 0; i < 10000; i++ {
+		computeRoundWithoutRelief(monkeys, inspectionsPerMonkey, constant)
 	}
+	max1, max2 := get2MaxValues(inspectionsPerMonkey)
 	return max1 * max2
 }
 
@@ -51,6 +54,45 @@ func computeRound(monkeys []Monkey, inspections []int) []int {
 		monkeys[monkeyIndex].items = []Item{}
 	}
 	return inspections
+}
+
+func computeRoundWithoutRelief(monkeys []Monkey, inspections []int, constant int) []int {
+	for monkeyIndex, monkey := range monkeys {
+		for _, item := range monkey.items {
+			item = Item(monkey.operation(int(item)) % constant)
+			index := monkey.monkeyIfDivisible
+			if int(item)%monkey.divisor != 0 {
+				index = monkey.monkeyIfNotDivisible
+			}
+			monkeys[index].items = append(monkeys[index].items, item)
+			inspections[monkeyIndex]++
+		}
+		// We can't use monkey directly, because it is a copy
+		monkeys[monkeyIndex].items = []Item{}
+	}
+	return inspections
+}
+
+func getDivisorConstant(monkeys []Monkey) int {
+	constant := 1
+	for _, monkey := range monkeys {
+		constant *= monkey.divisor
+	}
+	return constant
+}
+
+func get2MaxValues(slice []int) (int, int) {
+	max1 := 0
+	max2 := 0
+	for _, value := range slice {
+		if value > max1 {
+			max2 = max1
+			max1 = value
+		} else if value > max2 {
+			max2 = value
+		}
+	}
+	return max1, max2
 }
 
 type Item int
